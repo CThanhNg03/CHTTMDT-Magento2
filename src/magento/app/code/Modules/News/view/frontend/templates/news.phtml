@@ -1,0 +1,79 @@
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+  integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+<?php
+
+/**
+ * @var \Modules\News\Block\NewsBlock $block
+ */
+?>
+
+<div id="content"></div>
+
+<?php
+// Initialize cURL session
+
+$json = file_get_contents("https://api.rss2json.com/v1/api.json?rss_url=https://vnexpress.net/rss/kinh-doanh.rss");
+
+
+// Check for cURL errors
+if ($json === false) {
+  echo '<div class="alert alert-danger" role="alert">
+  Có lỗi xảy ra khi xử lý dữ liệu từ API. Vui lòng thử lại sau.
+</div>';
+}
+
+$data = json_decode($json, true);
+?>
+
+<div class="container" style="margin-left:0px; padding-left:0px; width:90vw">
+  <div class="row">
+    <?php foreach ($data['items'] as $k => $item) : ?>
+      <?php
+    $pattern = '/<img src="([^"]+)"/';
+    preg_match($pattern, $item['description'], $matches);
+
+    // Lưu đường dẫn vào biến
+    $imgSrc = isset($matches[1]) ? $matches[1] : '';
+    ?>
+      <?php if ($k === 0) : ?>
+        <div class="col-md-12">
+                <div class="card mb-4 box-shadow">
+                    <img class="card-img-top" src="<?= $imgSrc ?>" alt="News Image" 
+                    style="max-height: 400px;
+                    width: 100%;
+                    object-fit: cover;">
+                    <div class="card-body">
+                        <h2 class="card-title">
+                            <a class="text-dark font-weight-bold" href="<?= $item['link'] ?>"><?= $item['title'] ?></a>
+                        </h2>
+                        <p style="font-size: 1.7rem" class="card-text mb-auto"><?= strip_tags($item['description']) ?></p>
+                        <p style="font-size: 1.2rem"><small class="text-muted"><?= (new DateTime($item['pubDate']))->format('d M Y')?></small> </p>
+                    </div>
+                </div>
+            </div>
+      <?php else : ?>
+        <div class="col-md-6">
+                <div class="card flex-md-row mb-4 box-shadow h-md-250">
+                    <div class="row no-gutters">
+                        <div class="col-md-7">
+                            <div class="card-body">
+                                <h2 class="mb-0">
+                                    <a class="text-dark font-weight-bold" href="<?= $item['link'] ?>"><?= $item['title'] ?></a>
+                                </h2>
+                                <p style="font-size: 1.2rem" class="card-text mb-auto"><?= strip_tags($item['description']) ?></p>
+                                <p style="font-size: 1.2rem"><small class="text-muted"><?= (new DateTime($item['pubDate']))->format('d M Y')?></small> </p>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <img class="card-img-right flex-auto d-none d-md-block w-100"
+                                src="<?= $imgSrc ?>" style="width: 100%; height: auto;"
+                                data-holder-rendered="true">
+                        </div>
+                    </div>
+                </div>
+            </div>
+      <?php endif; ?>
+    <?php endforeach; ?>
+  </div>
+</div>
